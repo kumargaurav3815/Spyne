@@ -1,0 +1,223 @@
+/** @format */
+
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import "./updateStyles.css";
+import bannerImage from "../assets/banner.jpg";
+
+export default function UpdateCar() {
+  const { id } = useParams(); // Get car ID from URL params
+  const [car, setCar] = useState({
+    title: "",
+    description: "",
+    brand: "",
+    model: "",
+    year: "",
+    price: "",
+    image: null, // Change imageUrl to image to hold file
+  });
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchCarDetails = async () => {
+      try {
+        const response = await axios.get(
+          `http://localhost:5000/api/cars/viewCar/${id}`
+        );
+        setCar(response.data.car); // Populate form with fetched car details
+      } catch (error) {
+        toast.error("Error fetching car details: " + error.message, {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: true,
+        });
+      }
+    };
+
+    fetchCarDetails();
+  }, [id]);
+
+  // Handle form submission to update car details
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData();
+    formData.append("title", car.title);
+    formData.append("description", car.description);
+    formData.append("brand", car.brand);
+    formData.append("model", car.model);
+    formData.append("year", car.year);
+    formData.append("price", car.price);
+
+    // Only append the image if a file is selected
+    if (car.image) {
+      formData.append("image", car.image); // Attach the image file
+    }
+
+    try {
+      await axios.put(
+        `http://localhost:5000/api/cars/editCar/${id}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data", // Important header for file uploads
+          },
+        }
+      );
+      toast.success("Car details updated successfully!", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: true,
+      });
+      navigate("/viewCar"); // Ensure you navigate to the correct page
+    } catch (error) {
+      toast.error("Error updating car details: " + error.message, {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: true,
+      });
+    }
+  };
+
+  // Handle form input changes
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setCar((prevCar) => ({
+      ...prevCar,
+      [name]: value,
+    }));
+  };
+
+  // Handle image file input change
+  const handleImageChange = (e) => {
+    const file = e.target.files[0]; // Get the first selected file
+    if (file) {
+      setCar((prevCar) => ({
+        ...prevCar,
+        image: file, // Update image state with the file
+      }));
+    }
+  };
+
+  return (
+    <>
+      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <div className="update-car-form max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg w-full sm:w-96">
+          <h2 className="text-3xl font-semibold text-center mb-8">
+            Edit Car Details
+          </h2>
+          <form onSubmit={handleSubmit}>
+            <div className="form-group mb-4">
+              <label htmlFor="title" className="block text-lg font-medium mb-2">
+                Title:
+              </label>
+              <input
+                type="text"
+                id="title"
+                name="title"
+                value={car.title}
+                onChange={handleChange}
+                required
+                className="w-full p-3 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div className="form-group mb-4">
+              <label
+                htmlFor="description"
+                className="block text-lg font-medium mb-2">
+                Description:
+              </label>
+              <input
+                type="text"
+                id="description"
+                name="description"
+                value={car.description}
+                onChange={handleChange}
+                required
+                className="w-full p-3 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div className="form-group mb-4">
+              <label htmlFor="brand" className="block text-lg font-medium mb-2">
+                Brand:
+              </label>
+              <input
+                type="text"
+                id="brand"
+                name="brand"
+                value={car.brand}
+                onChange={handleChange}
+                required
+                className="w-full p-3 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div className="form-group mb-4">
+              <label htmlFor="model" className="block text-lg font-medium mb-2">
+                Model:
+              </label>
+              <input
+                type="text"
+                id="model"
+                name="model"
+                value={car.model}
+                onChange={handleChange}
+                required
+                className="w-full p-3 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div className="form-group mb-4">
+              <label htmlFor="year" className="block text-lg font-medium mb-2">
+                Year:
+              </label>
+              <input
+                type="number"
+                id="year"
+                name="year"
+                value={car.year}
+                onChange={handleChange}
+                required
+                className="w-full p-3 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div className="form-group mb-4">
+              <label htmlFor="price" className="block text-lg font-medium mb-2">
+                Price:
+              </label>
+              <input
+                type="number"
+                id="price"
+                name="price"
+                value={car.price}
+                onChange={handleChange}
+                required
+                className="w-full p-3 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div className="form-group mb-6">
+              <label htmlFor="image" className="block text-lg font-medium mb-2">
+                Image:
+              </label>
+              <input
+                type="file"
+                id="image"
+                name="image"
+                accept="image/*"
+                onChange={handleImageChange} // Handle file change
+                className="w-full p-3 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <button
+              type="submit"
+              className="w-full py-3 bg-blue-500 text-white rounded-md text-xl font-semibold hover:bg-blue-600 transition-all">
+              Update Car
+            </button>
+          </form>
+          <ToastContainer />
+        </div>
+      </div>
+    </>
+  );
+}
